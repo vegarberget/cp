@@ -1,0 +1,24 @@
+#!/bin/bash
+for i in {1..19}
+do
+    mkdir -p /data/vol0$i
+    chown nfsnobody:nfsnobody /data/vol0$i
+    chmod 777 /data/vol0$i
+    echo "/data/vol0$i *(rw,root_squash,no_wdelay)" >> /etc/exports
+
+    cat | oc create -f - << EOF
+     apiVersion: v1
+     kind: PersistentVolume
+     metadata:
+       name: pv0$i
+     spec:
+       capacity:
+         storage: 10Gi
+       accessModes:
+         - ReadWriteOnce
+       nfs:
+         path: /data/vol0$i
+         server: 172.31.128.201
+       persistentVolumeReclaimPolicy: Recycle
+EOF
+done
